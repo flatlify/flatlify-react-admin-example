@@ -1,8 +1,9 @@
 {
-  "type": "Video",
+  "type": "Cast",
   "fields": [
-    { "fieldType": "TextInput", "title": "fieldnewnew", "isRequired": true, "_gridDisplay_": true },
-    { "fieldType": "TextInput", "title": "field2", "_gridDisplay_": true, "isRequired": true }
+    { "fieldType": "TextInput", "title": "Full name", "isRequired": true, "_gridDisplay_": true },
+    { "fieldType": "RichTextInput", "title": "Bio" },
+    { "fieldType": "ImageInput", "title": "Photo", "accept": "image/*", "multiple": true }
   ],
   "id": 2
 }

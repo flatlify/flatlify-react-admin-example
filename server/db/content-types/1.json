@@ -1,5 +1,5 @@
 {
-  "type": "Show",
+  "type": "Episode",
   "fields": [
     {
       "fieldType": "TextInput",
@@ -9,26 +9,25 @@
     },
     {
       "fieldType": "TextInput",
-      "title": "Subhead",
-      "isRequired": false
+      "title": "Episode Number",
+      "isRequired": true
     },
     {
       "fieldType": "RichTextInput",
-      "title": "Description",
-      "isRequired": true
+      "title": "Description"
     },
     {
       "fieldType": "ImageInput",
       "title": "Cover",
-      "accept": "image/*",
-      "isRequired": true
+      "accept": "image/*"
     },
     {
-      "fieldType": "ReferenceArrayInput",
-      "title": "Seasons",
-      "refTypeId": 4,
-      "displayValue": "Season title"
+      "fieldType": "ReferenceInput",
+      "title": "Video",
+      "refTypeId": 0,
+      "displayValue": "Title",
+      "isRequired": true
     }
   ],
-  "id": 3
+  "id": 1
 }
