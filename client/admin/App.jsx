@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataProvider } from './dataProvider';
 import contentTypesActions from './content-types';
-import modifiedFilesActions from './modified-files';
+import siteSettingsActions from './site-settings';
 import createCrudComponents from './create-crud-components';
 import { contentTypesSelector } from '../selectors/adminSelectors';
 
@@ -24,22 +24,30 @@ function Resources() {
     resource: 'content-types',
     pagination: { page: 0, perPage: 100 },
   });
+  useQueryWithStore({
+    type: 'getList',
+    resource: 'settings',
+    pagination: { page: 0, perPage: 100 },
+  });
 
   const contentTypes = useSelector(contentTypesSelector);
   const [resources, setResources] = useState([]);
   const contentTypesString = JSON.stringify(contentTypes);
 
   useEffect(() => {
-    const resources = contentTypes.map(contentType => {
-      return (
-        <Resource
-          key={`type-${contentType.type}`}
-          name={`${String(contentType.type).toLowerCase()}`}
-          {...createCrudComponents(contentType)}
-        />
-      );
+    const newResources = [...resources];
+    contentTypes.forEach(contentType => {
+      if (contentType.type !== 'site-settings') {
+        newResources.push(
+          <Resource
+            key={`type-${contentType.type}`}
+            name={`${String(contentType.type).toLowerCase()}`}
+            {...createCrudComponents(contentType)}
+          />,
+        );
+      }
     });
-    setResources(resources);
+    setResources(newResources);
     // do not add contentTypes in dependencies, it causes infinite rerenders if reference input is on the page
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentTypesString]);
@@ -48,6 +56,7 @@ function Resources() {
     <AdminUI>
       {[
         <Resource key="content-types" name="content-types" {...contentTypesActions} />,
+        <Resource key="settings" name="settings" {...siteSettingsActions} />,
         ...resources,
       ]}
     </AdminUI>
