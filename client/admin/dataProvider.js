@@ -4,8 +4,6 @@ const getRouteURL = (baseURL, resource) => {
   switch (resource) {
     case 'content-types':
       return `${baseURL}/content-types/content-types`;
-    case 'modified-files':
-      return `${baseURL}/modified-files/modified-files`;
     default:
       return `${baseURL}/content/${resource}`;
   }
