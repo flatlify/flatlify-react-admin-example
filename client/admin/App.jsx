@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { DataProvider } from './dataProvider';
 import contentTypesActions from './content-types';
+import mediaActions from './media';
 import siteSettingsActions from './site-settings';
 import createCrudComponents from './create-crud-components';
 import { contentTypesSelector } from '../selectors/adminSelectors';
 
 import { AdminContext, AdminUI, Resource, useQueryWithStore } from 'react-admin';
 import { useSelector } from 'react-redux';
-const dataProvider = DataProvider('http://localhost:3020');
+
+export const HOST = 'http://localhost:3020';
+
+const dataProvider = DataProvider(HOST);
 
 const App = () => (
   <AdminContext dataProvider={dataProvider}>
     <Resources />
   </AdminContext>
 );
+const reservedTypes = ['content-types', 'site-settings', 'media'];
 
 function Resources() {
   /**
@@ -37,7 +42,7 @@ function Resources() {
   useEffect(() => {
     const newResources = [...resources];
     contentTypes.forEach(contentType => {
-      if (contentType.type !== 'site-settings') {
+      if (!reservedTypes.includes(contentType.type)) {
         newResources.push(
           <Resource
             key={`type-${contentType.type}`}
@@ -58,6 +63,7 @@ function Resources() {
         <Resource key="content-types" name="content-types" {...contentTypesActions} />,
         <Resource key="settings" name="settings" {...siteSettingsActions} />,
         ...resources,
+        <Resource key="media" name="media" {...mediaActions} />,
       ]}
     </AdminUI>
   );

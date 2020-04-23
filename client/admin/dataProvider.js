@@ -15,12 +15,12 @@ const getFileFields = params => {
     if (params.data.hasOwnProperty(fieldName)) {
       if (Array.isArray(params.data[fieldName])) {
         params.data[fieldName].forEach((fieldEntry, i) => {
-          if (fieldEntry?.rawFile instanceof File) {
-            fileFields[fieldName] = [fieldEntry.rawFile, ...(fileFields[fieldName] || [])];
+          if (fieldEntry instanceof File) {
+            fileFields[fieldName] = [fieldEntry, ...(fileFields[fieldName] || [])];
           }
         });
-      } else if (params.data[fieldName]?.rawFile instanceof File) {
-        fileFields[fieldName] = params.data[fieldName].rawFile;
+      } else if (params.data[fieldName] instanceof File) {
+        fileFields[fieldName] = params.data[fieldName];
       }
     }
   }
@@ -60,7 +60,7 @@ const processData = params => {
   };
 };
 
-export const DataProvider = (baseURL = 'localhost:3020') => ({
+export const DataProvider = baseURL => ({
   getList: async (resource, params) => {
     const response = await axios.get(getRouteURL(baseURL, resource), {
       params,
