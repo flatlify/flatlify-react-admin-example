@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { AdminContext, AdminUI, Resource, useQueryWithStore } from 'react-admin';
+import { useSelector } from 'react-redux';
 import { DataProvider } from './dataProvider';
 import contentTypesActions from './content-types';
 import mediaActions from './media';
 import siteSettingsActions from './site-settings';
 import createCrudComponents from './create-crud-components';
 import { contentTypesSelector } from '../selectors/adminSelectors';
+import { API_URL } from './constants';
 
-import { AdminContext, AdminUI, Resource, useQueryWithStore } from 'react-admin';
-import { useSelector } from 'react-redux';
-
-export const HOST = 'http://localhost:3020';
-
-const dataProvider = DataProvider(HOST);
+const dataProvider = DataProvider(API_URL);
 
 const App = () => (
   <AdminContext dataProvider={dataProvider}>
@@ -53,8 +51,8 @@ function Resources() {
       }
     });
     setResources(newResources);
-    // do not add contentTypes in dependencies, it causes infinite rerenders if reference input is on the page
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // do not add contentTypes in dependencies,
+    // it causes infinite rerenders if reference input is on the page
   }, [contentTypesString]);
 
   return (

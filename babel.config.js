@@ -1,4 +1,5 @@
 module.exports = {
+  plugins: ['@babel/plugin-proposal-optional-chaining'],
   env: {
     development: {
       presets: ['next/babel'],
