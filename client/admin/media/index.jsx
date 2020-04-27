@@ -50,12 +50,18 @@ const getColsForWidth = width => {
 
 const times = (nbChildren, fn) => Array.from({ length: nbChildren }, (_, key) => fn(key));
 
+const CELL_HEIGHT = 200;
+
 const LoadingGridList = ({ nbItems = 10 }) => {
   const width = useWidth();
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      <MuiGridList cellHeight={180} cols={getColsForWidth(width)} className={classes.gridList}>
+      <MuiGridList
+        cellHeight={CELL_HEIGHT}
+        cols={getColsForWidth(width)}
+        className={classes.gridList}
+      >
         {times(nbItems, key => (
           <GridListTile key={key}>
             <div className={classes.placeholder} />
