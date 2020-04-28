@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 const axios = require('axios').default;
 
 const getRouteURL = (baseURL, resource) => {
@@ -9,18 +10,55 @@ const getRouteURL = (baseURL, resource) => {
   }
 };
 
-const processData = params => {
-  const headers = {};
-
-  const formData = new FormData();
-  // eslint-disable-next-line no-restricted-syntax
-  for (const [key, value] of Object.entries(params.data)) {
-    formData.append(key, value);
+const getFileFields = params => {
+  const fileFields = {};
+  for (const fieldName in params.data) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (params.data.hasOwnProperty(fieldName)) {
+      if (Array.isArray(params.data[fieldName])) {
+        params.data[fieldName].forEach(fieldEntry => {
+          if (fieldEntry instanceof File) {
+            fileFields[fieldName] = [fieldEntry, ...(fileFields[fieldName] || [])];
+          }
+        });
+      } else if (params.data[fieldName] instanceof File) {
+        fileFields[fieldName] = params.data[fieldName];
+      }
+    }
   }
-  headers['Content-Type'] = `multipart/form-data; boundary=${formData.boundary}`;
+
+  return fileFields;
+};
+
+const processData = params => {
+  const fileFields = getFileFields(params);
+  const headers = {};
+  let { data } = params;
+  /**
+   * Convert body to multipart/form-data if there is any file field
+   * @see https://stackoverflow.com/questions/43013858/how-to-post-a-file-from-a-form-with-axios
+   */
+  if (Object.keys(fileFields).length) {
+    const formData = new FormData();
+    for (const fieldName in data) {
+      if (fileFields[fieldName]) {
+        if (Array.isArray(fileFields[fieldName])) {
+          fileFields[fieldName].forEach(file => {
+            formData.append(`${fieldName}`, file);
+          });
+        } else {
+          formData.append(fieldName, fileFields[fieldName]);
+        }
+      } else {
+        formData.append(fieldName, data[fieldName]);
+      }
+    }
+    data = formData;
+    headers['Content-Type'] = `multipart/form-data; boundary=${data.boundary}`;
+  }
 
   return {
-    data: formData,
+    data,
     headers,
   };
 };
@@ -73,9 +111,7 @@ export const DataProvider = baseURL => ({
   },
   deleteMany: async (resource, params) => {
     const { ids } = params;
-    const response = await axios.delete(getRouteURL(baseURL, resource), {
-      data: ids,
-    });
+    const response = await axios.delete(getRouteURL(baseURL, resource), { data: ids });
     return response.data;
   },
 });

@@ -1,10 +1,18 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Button from '@material-ui/core/Button';
-import { List, useListController, useMutation } from 'react-admin';
+import {
+  List,
+  useListController,
+  useMutation,
+  useDeleteMany,
+  CRUD_DELETE_MANY,
+  useNotify,
+} from 'react-admin';
 import MuiGridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import { makeStyles } from '@material-ui/core/styles';
 import AddIcon from '@material-ui/icons/Add';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import { API_URL } from '../constants';
 import { useWidth } from '../hooks';
 
@@ -16,27 +24,24 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
     margin: '0px !important',
   },
-  tileBar: {
-    background:
-      'linear-gradient(to top, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.4) 70%,rgba(0,0,0,0) 100%)',
-  },
   placeholder: {
     backgroundColor: theme.palette.grey[300],
     height: '100%',
-  },
-  price: {
-    display: 'inline',
-    fontSize: '1em',
-  },
-  link: {
-    color: '#fff',
   },
   uploadBtn: {
     color: '#3f51b5',
     fontSize: '0.8125rem',
   },
-  imageSelected: {
-    filter: `blur(1px)`,
+  imageWrapper: {
+    borderWidth: `2px`,
+  },
+  imageActive: {
+    borderStyle: `dashed`,
+    borderColor: `black`,
+  },
+  controls: {
+    display: `flex`,
+    justifyContent: `space-between`,
   },
 }));
 
@@ -75,36 +80,63 @@ const LoadingGridList = ({ nbItems = 10 }) => {
 const LoadedGridList = props => {
   const classes = useStyles();
   const width = useWidth();
+  const fileInputRef = useRef(null);
+  const [selectedImages, setSelectedImages] = useState(new Set());
+  const [mutate] = useMutation();
+  const notify = useNotify();
 
   const imagesInObject = useListController(props).data;
-  const fileInputRef = useRef(null);
   const imagesArray = Object.values(imagesInObject);
   const images = imagesArray.map(image => ({
     ...image,
     src: `${API_URL}${image.relativeSrc}`,
   }));
 
-  // eslint-disable-next-line no-unused-vars
-  const [mutate, { loading }] = useMutation();
+  const [deleteQuery] = useDeleteMany('media', [...selectedImages.values()], {
+    action: CRUD_DELETE_MANY,
+    onSuccess: () => {
+      notify('Deleted', 'info', {}, true);
+    },
+    undoable: true,
+  });
+
   const handleFileUpload = event => {
     const [file] = event.target.files;
-    return mutate({
-      type: 'create',
-      resource: 'media',
-      payload: { data: { file } },
-    });
+    mutate(uploadFile(file));
   };
 
   const handleClick = () => {
     fileInputRef.current.click();
   };
 
+  const handleFilesDelete = () => {
+    deleteQuery();
+    setSelectedImages(new Set());
+  };
+
+  const handleImageClick = filename => {
+    if (selectedImages.has(filename)) {
+      selectedImages.delete(filename);
+    } else {
+      selectedImages.add(filename);
+    }
+    setSelectedImages(new Set(selectedImages.values()));
+  };
+
+  const active = id => selectedImages.has(id);
+
   return (
     <div className={classes.root}>
-      <Button className={classes.uploadBtn} onClick={handleClick}>
-        <AddIcon />
-        Upload
-      </Button>
+      <div className={classes.controls}>
+        <Button className={classes.uploadBtn} onClick={handleClick}>
+          <AddIcon />
+          Upload
+        </Button>
+        <Button className={classes.uploadBtn} onClick={handleFilesDelete}>
+          <DeleteForeverIcon />
+          Delete
+        </Button>
+      </div>
       <input
         type="file"
         onChange={handleFileUpload}
@@ -119,8 +151,12 @@ const LoadedGridList = props => {
       >
         {images.map(image => {
           return (
-            <GridListTile key={`${image.src}`}>
-              <img src={image.src} alt="" />
+            <GridListTile
+              key={`${image.id}`}
+              onClick={() => handleImageClick(image.id)}
+              className={`${classes.imageWrapper} ${active(image.id) ? classes.imageActive : null}`}
+            >
+              <img src={image.src} alt="" className={classes.img} />
             </GridListTile>
           );
         })}
@@ -142,6 +178,12 @@ const Media = props => {
     </List>
   );
 };
+
+const uploadFile = file => ({
+  type: 'create',
+  resource: 'media',
+  payload: { data: { file } },
+});
 
 export default {
   list: Media,
