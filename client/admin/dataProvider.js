@@ -4,7 +4,7 @@ const axios = require('axios').default;
 const getRouteURL = (baseURL, resource) => {
   switch (resource) {
     case 'content-types':
-      return `${baseURL}/content-types/content-types`;
+      return `${baseURL}/content-types`;
     default:
       return `${baseURL}/content/${resource}`;
   }
