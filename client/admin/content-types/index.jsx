@@ -11,16 +11,16 @@ import {
   FormDataConsumer,
 } from 'react-admin';
 import BookIcon from '@material-ui/icons/Book';
+import get from 'lodash/get';
 import { ContentTypeList } from './ContentTypeList';
 import { ImageInputConfig } from '../components/ImageInput';
 import { ReferenceInputConfig } from '../components/ReferenceInput';
-
-import get from 'lodash/get';
 import OrderedFormIterator from '../components/OrderedFormIterator';
 
 const ContentTypeTitle = ({ record }) => {
   return <span>Content Type {record ? `"${record.type}"` : ''}</span>;
 };
+
 const getFieldConfig = (fieldType, getSource, scopedFormData) => {
   // React Admin warning: You're using a FormDataConsumer inside an ArrayInput and you did not called
   // the getSource function supplied by the FormDataConsumer component.
@@ -34,19 +34,29 @@ const getFieldConfig = (fieldType, getSource, scopedFormData) => {
 
     case 'ReferenceInput':
     case 'ReferenceArrayInput':
-      return <ReferenceInputConfig getSource={getSource} scopedFormData={scopedFormData} />;
+      return (
+        <ReferenceInputConfig
+          getSource={getSource}
+          scopedFormData={scopedFormData}
+        />
+      );
 
-    default:
+    default: {
       const _source = typeof getSource === 'function' ? getSource() : null;
       return <></>;
+    }
   }
 };
 
-const Fields = props => {
+const Fields = () => {
   return (
     <>
       <TextInput source="type" validate={required()} />
-      <SelectInput source="icon" label="icon" choices={[{ id: 'BookIcon', name: 'BookIcon' }]} />
+      <SelectInput
+        source="icon"
+        label="icon"
+        choices={[{ id: 'BookIcon', name: 'BookIcon' }]}
+      />
       <ArrayInput source="fields">
         <OrderedFormIterator>
           <TextInput required label="Field name" source="title" />

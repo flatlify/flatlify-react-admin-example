@@ -50,7 +50,7 @@ const styles = theme => ({
   },
 });
 
-export class OrderedFormIterator extends Component {
+class OrderedFormIterator extends Component {
   constructor(props) {
     super(props);
     // we need a unique id for each field for a proper enter/exit animation
@@ -106,7 +106,11 @@ export class OrderedFormIterator extends Component {
               <TransitionGroup>
                 {fields.map((member, index) => {
                   return (
-                    <CSSTransition key={`${this.state.ids[index]}`} timeout={500} classNames="fade">
+                    <CSSTransition
+                      key={`${this.state.ids[index]}`}
+                      timeout={500}
+                      classNames="fade"
+                    >
                       <DraggableFormInput
                         id={`${this.state.ids[index]}`}
                         index={index}
