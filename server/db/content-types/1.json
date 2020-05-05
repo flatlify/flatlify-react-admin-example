@@ -17,9 +17,10 @@
       "title": "Description"
     },
     {
-      "fieldType": "ImageInput",
+      "fieldType": "MediaInput",
       "title": "Cover",
-      "accept": "image/*"
+      "accept": "image/*",
+      "multiple": false
     },
     {
       "fieldType": "ReferenceInput",

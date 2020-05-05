@@ -1,11 +1,9 @@
 import React from 'react';
 import {
   SingleFieldList,
-  ArrayInput,
   ChipField,
   ReferenceField,
   ReferenceArrayField,
-  BooleanInput,
   Create,
   Edit,
   required,
@@ -13,13 +11,7 @@ import {
   TextInput,
 } from 'react-admin';
 import S from 'string';
-import {
-  Datagrid,
-  List,
-  TextField,
-  PostListActionToolbar,
-  EditButton,
-} from 'ra-ui-materialui';
+import { Datagrid, List, TextField, EditButton } from 'ra-ui-materialui';
 import RichTextInput from 'ra-input-rich-text';
 import { useSelector } from 'react-redux';
 import { MediaInput } from '../components/MediaInput';
@@ -36,7 +28,7 @@ const getFieldComponent = type => {
       return RichTextInput;
     case 'TextInput':
       return TextInput;
-    case 'ImageInput':
+    case 'MediaInput':
       return MediaInput;
     case 'ReferenceInput':
       return _ReferenceInput;
@@ -56,10 +48,10 @@ const createCRUDComponents = contentTypeSettings => {
     return (
       <>
         {contentTypeSettings.fields.map(
-          ({ isRequired, title, fieldType, ...fieldConfig }, i) => {
+          ({ isRequired, title, fieldType, ...fieldConfig }) => {
             const FieldComponent = getFieldComponent(fieldType);
             return (
-              <div key={i}>
+              <div key={`${fieldType} ${title}`}>
                 <FieldComponent
                   label={title}
                   source={camelize(title)}

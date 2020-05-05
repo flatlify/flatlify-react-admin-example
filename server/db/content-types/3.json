@@ -18,7 +18,7 @@
       "isRequired": true
     },
     {
-      "fieldType": "ImageInput",
+      "fieldType": "MediaInput",
       "title": "Cover",
       "accept": "image/*",
       "isRequired": true

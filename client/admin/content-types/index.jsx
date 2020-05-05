@@ -22,14 +22,15 @@ const ContentTypeTitle = ({ record }) => {
 };
 
 const getFieldConfig = (fieldType, getSource, scopedFormData) => {
-  // React Admin warning: You're using a FormDataConsumer inside an ArrayInput and you did not called
+  // React Admin warning: You're using a FormDataConsumer inside
+  // an ArrayInput and you did not called
   // the getSource function supplied by the FormDataConsumer component.
   // This is required for your inputs to get the proper source
   // but we don't need get source every time, sometimes we return empty component
   // and when we need, we call it in child components
 
   switch (fieldType) {
-    case 'ImageInput':
+    case 'MediaInput':
       return <ImageInputConfig getSource={getSource} />;
 
     case 'ReferenceInput':
@@ -42,6 +43,7 @@ const getFieldConfig = (fieldType, getSource, scopedFormData) => {
       );
 
     default: {
+      // eslint-disable-next-line no-unused-vars
       const _source = typeof getSource === 'function' ? getSource() : null;
       return <></>;
     }
@@ -67,7 +69,7 @@ const Fields = () => {
             choices={[
               { id: 'TextInput', name: 'Text' },
               { id: 'RichTextInput', name: 'Rich Text' },
-              { id: 'ImageInput', name: 'Image' },
+              { id: 'MediaInput', name: 'Media' },
               { id: 'ReferenceInput', name: 'ReferenceInput' },
               { id: 'ReferenceArrayInput', name: 'ReferenceArrayInput' },
             ]}
