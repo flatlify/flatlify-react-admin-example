@@ -13,6 +13,7 @@ import mediaActions from './media';
 import siteSettingsActions from './site-settings';
 import createCrudComponents from './create-crud-components';
 import { API_URL } from './constants';
+import { getIconFromName } from './utils/contentTypeIcons';
 
 const dataProvider = DataProvider(API_URL);
 
@@ -51,6 +52,7 @@ function Resources() {
             key={`type-${contentType.type}`}
             name={`${String(contentType.type).toLowerCase()}`}
             {...createCrudComponents(contentType)}
+            icon={getIconFromName(contentType.icon)}
           />,
         );
       }
