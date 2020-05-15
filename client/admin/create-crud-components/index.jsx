@@ -19,7 +19,7 @@ import {
   _ReferenceInput,
   _ReferenceArrayInput,
 } from '../components/ReferenceInput';
-import { contentTypesSelector } from '../selectors/adminSelectors';
+import { contentTypesSelector } from '../react-admin/selectors';
 import { camelize } from '../../utils/string';
 
 const getFieldComponent = type => {
@@ -48,7 +48,7 @@ const createCRUDComponents = contentTypeSettings => {
     return (
       <>
         {contentTypeSettings.fields.map(
-          ({ isRequired, title, fieldType, ...fieldConfig }) => {
+          ({ isRequired, title, fieldType, _gridDisplay_, ...fieldConfig }) => {
             const FieldComponent = getFieldComponent(fieldType);
             return (
               <div key={`${fieldType} ${title}`}>

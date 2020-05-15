@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import {
   List,
@@ -8,40 +8,36 @@ import {
   CRUD_DELETE_MANY,
   useNotify,
 } from 'react-admin';
-
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import { useSelector, useDispatch } from 'react-redux';
+import DoneIcon from '@material-ui/icons/Done';
 import { API_URL } from '../constants';
-import { ImagesGridList, LoadingGridList } from '../components/imagesGridList';
+import { ImagesGridList } from '../components/imagesGridList';
 import { useWidth } from '../hooks';
+import { getMedia, getMediaSelectedIds } from './selectors';
+import { closeMedia, setMultiple } from './actions';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: {
     padding: 4,
-  },
-  gridList: {
-    width: '100%',
-    margin: '0px !important',
-  },
-  placeholder: {
-    backgroundColor: theme.palette.grey[300],
-    height: '100%',
   },
   uploadBtn: {
     color: '#3f51b5',
     fontSize: '0.8125rem',
   },
-  imageWrapper: {
-    borderWidth: '2px',
-  },
-  imageActive: {
-    borderStyle: 'dashed',
-    borderColor: 'black',
-  },
   controls: {
     display: 'flex',
     justifyContent: 'space-between',
+  },
+  listWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 10,
+    background: '#fafafa',
+    height: '100%',
   },
 }));
 
@@ -50,7 +46,9 @@ const LoadedGridList = props => {
   const fileInputRef = useRef(null);
   const [mutate] = useMutation();
   const notify = useNotify();
-  const [selectedImages, setSelectedImages] = useState(new Set());
+
+  const media = useSelector(getMedia);
+  const selectedImageIds = useSelector(getMediaSelectedIds);
 
   const imagesInObject = useListController(props).data;
   const imagesArray = Object.values(imagesInObject);
@@ -59,13 +57,17 @@ const LoadedGridList = props => {
     src: `${API_URL}${image.relativeSrc}`,
   }));
 
-  const [deleteQuery] = useDeleteMany('media', [...selectedImages.values()], {
-    action: CRUD_DELETE_MANY,
-    onSuccess: () => {
-      notify('Deleted', 'info', {}, true);
+  const [deleteQuery] = useDeleteMany(
+    'media',
+    Object.values(selectedImageIds),
+    {
+      action: CRUD_DELETE_MANY,
+      onSuccess: () => {
+        notify('Deleted', 'info', {}, true);
+      },
+      undoable: true,
     },
-    undoable: true,
-  });
+  );
 
   const handleFileUpload = event => {
     const [file] = event.target.files;
@@ -78,7 +80,6 @@ const LoadedGridList = props => {
 
   const handleFilesDelete = () => {
     deleteQuery();
-    setSelectedImages(new Set());
   };
 
   const width = useWidth();
@@ -89,6 +90,10 @@ const LoadedGridList = props => {
     if (width === 'lg') return 5;
     return 6;
   };
+
+  const dispatch = useDispatch();
+  const handleDone = () => dispatch(closeMedia());
+
   return (
     <div className={classes.root}>
       <div className={classes.controls}>
@@ -100,6 +105,12 @@ const LoadedGridList = props => {
           <DeleteForeverIcon />
           Delete
         </Button>
+        {media.doneButton ? (
+          <Button className={classes.uploadBtn} onClick={handleDone}>
+            <DoneIcon />
+            Update
+          </Button>
+        ) : null}
       </div>
       <input
         type="file"
@@ -107,29 +118,27 @@ const LoadedGridList = props => {
         ref={fileInputRef}
         style={{ display: 'none' }}
       />
-      <ImagesGridList
-        images={images}
-        setSelectedImages={setSelectedImages}
-        selectedImages={selectedImages}
-        columns={getColsForWidth(width)}
-      />
+      <ImagesGridList images={images} columns={getColsForWidth(width)} />
     </div>
   );
 };
 
-const GridList = ({ loaded, ...props }) => {
-  return loaded ? (
-    <LoadedGridList {...props} />
-  ) : (
-    <LoadingGridList {...props} />
-  );
-};
-
-const Media = props => {
+export const Media = () => {
+  const classes = useStyles();
   return (
-    <List {...props} sort={{ field: 'id', order: 'ASC' }}>
-      <GridList />
-    </List>
+    <div className={classes.listWrapper}>
+      <List
+        basePath="/media"
+        resource="media"
+        hasShow={false}
+        hasList
+        hasEdit={false}
+        hasCreate={false}
+        sort={{ field: 'id', order: 'ASC' }}
+      >
+        <LoadedGridList />
+      </List>
+    </div>
   );
 };
 
@@ -139,6 +148,14 @@ const uploadFile = file => ({
   payload: { data: { file } },
 });
 
+const PlainMedia = () => {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(setMultiple(true));
+  }, []);
+  return <Media />;
+};
+
 export default {
-  list: Media,
+  list: PlainMedia,
 };

@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useInput, useQueryWithStore, ReferenceInput } from 'react-admin';
-import { Dialog, makeStyles } from '@material-ui/core';
-import Img from 'react-image';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { makeStyles } from '@material-ui/core';
+import { useDispatch, useSelector } from 'react-redux';
+import AddIcon from '@material-ui/icons/Add';
 import { API_URL } from '../constants';
-import { ImagesGridList, getColsForWidth } from './imagesGridList';
-import { useWidth } from '../hooks';
+import { Media } from '../media';
+import {
+  closeMedia as closeMediaAction,
+  openMedia as openMediaAction,
+} from '../media/actions';
+import { isMediaOpen, getMediaSelectedIds } from '../media/selectors';
 
 const useStyles = makeStyles(() => ({
   img: {
@@ -20,14 +24,20 @@ const useStyles = makeStyles(() => ({
     height: 150,
     width: 150,
     overflow: 'hidden',
+    padding: 1,
   },
-  dialogPaper: {
-    minHeight: '100vh',
+  upload: {
+    border: 'solid 1px black',
+    height: '99%',
+    width: '99%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }));
 
 export const MediaInput = props => {
-  const { source, label, record, multiple } = props;
+  const { source, label, record } = props;
   const img = record[source];
 
   useQueryWithStore({
@@ -38,139 +48,76 @@ export const MediaInput = props => {
 
   return (
     <ReferenceInput reference="media" source="id">
-      {multiple ? (
-        <MediaMultipleSelectDialog
-          imgIds={img}
-          label={label}
-          fieldName={source}
-        />
-      ) : (
-        <MediaSelectDialog imgId={img} label={label} fieldName={source} />
-      )}
+      <MediaInputContainer imgId={img} label={label} fieldName={source} />
     </ReferenceInput>
   );
 };
 
-const MediaSelectDialog = props => {
-  const { choices: imagesInfo, label, imgId, fieldName } = props;
+const MediaInputContainer = props => {
+  const { choices: imagesInfo, label, fieldName, multiple, imgId } = props;
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
-  const [selectedImages, setSelectedImages] = useState(new Set([imgId]));
+  const dispatch = useDispatch();
+  const open = useSelector(isMediaOpen);
+
+  const openMedia = () => {
+    dispatch(openMediaAction({ doneButton: true, multiple }));
+  };
+
+  const closeModalOnChangeRoute = () => dispatch(closeMediaAction());
+
+  useEffect(() => {
+    return closeModalOnChangeRoute;
+  }, []);
+
   const {
-    input: { onChange },
+    input: { onChange: updateReactAdminInputValue },
   } = useInput({ name: label, source: fieldName, id: 'media' });
 
-  const images = imagesInfo.map(image => ({
+  const imagesWithSrc = imagesInfo.map(image => ({
     ...image,
     src: `${API_URL}${image.relativeSrc}`,
   }));
 
-  const imageSrc = images.find(
-    image => image.id === selectedImages.values().next().value,
-  )?.src;
+  const selectedImageIds = useSelector(getMediaSelectedIds);
+  const selectedImageId = Object.values(selectedImageIds)[0] || '';
+  /**
+   * if user opened media we should use last selected media Id instead of backend Id value
+   */
+  const [wasMediaOpened, setWasMediaOpened] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setWasMediaOpened(true);
+    }
+  }, [open]);
+  const trueImgId = wasMediaOpened ? selectedImageId : imgId;
 
-  const handleImageSelect = newImage => {
-    onChange({ target: { value: newImage.values().next().value } });
-    setSelectedImages(newImage);
-  };
-  const toggleDialog = () => setOpen(!open);
-  const width = useWidth();
+  const imageSrc = imagesWithSrc.find(image => image.id === trueImgId)?.src;
+
+  /**
+   * update image field on image selection
+   */
+  useEffect(() => {
+    updateReactAdminInputValue(selectedImageId);
+  }, [selectedImageId]);
+
   return (
     <>
-      <button onClick={toggleDialog} type="button" className={classes.button}>
-        <Img
-          src={[imageSrc, '/add_file.png']}
-          alt={fieldName}
-          className={classes.img}
-          loader={<CircularProgress />}
-        />
+      <button onClick={openMedia} type="button" className={classes.button}>
+        <MediaInputImage alt={fieldName} imageSrc={imageSrc} />
       </button>
-      <Dialog
-        aria-labelledby="dialog-title"
-        open={open}
-        disableEscapeKeyDown={false}
-        onClose={() => toggleDialog()}
-        fullWidth
-        maxWidth={width}
-        classes={{ paper: classes.dialogPaper }}
-      >
-        <ImagesGridList
-          images={images}
-          selectedImages={selectedImages}
-          setSelectedImages={handleImageSelect}
-          columns={getColsForWidth(width)}
-          multiple={false}
-        />
-      </Dialog>
+      {open ? <Media /> : null}
     </>
   );
 };
 
-const MediaMultipleSelectDialog = props => {
-  const { choices: imagesInfo, label, imgIds, fieldName } = props;
-  // We don't have migrations for now, so we need to
-  // somehow handle `single to multiple` change
-  const imgIdsIfMigratedToArray =
-    typeof imgIds === 'string' ? [imgIds] : imgIds;
-
+const MediaInputImage = props => {
+  const { imageSrc, alt } = props;
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
-  const [selectedImages, setSelectedImages] = useState(
-    new Set(imgIdsIfMigratedToArray),
-  );
-  const {
-    input: { onChange },
-  } = useInput({ name: label, source: fieldName, id: 'media' });
-
-  const images = imagesInfo.map(image => ({
-    ...image,
-    src: `${API_URL}${image.relativeSrc}`,
-  }));
-
-  const handleImageSelect = newImage => {
-    onChange({ target: { value: [...newImage.values()] } });
-    setSelectedImages(newImage);
-  };
-  const toggleDialog = () => setOpen(!open);
-
-  const width = useWidth();
-
-  return (
-    <>
-      {[...selectedImages.values()].map(imgId => {
-        const imageSrc = images.find(image => image.id === imgId)?.src;
-        return (
-          <button
-            onClick={toggleDialog}
-            type="button"
-            className={classes.button}
-          >
-            <Img
-              src={[imageSrc, '/add_file.png']}
-              alt={fieldName}
-              className={classes.img}
-              loader={<CircularProgress />}
-            />
-          </button>
-        );
-      })}
-      <Dialog
-        aria-labelledby="dialog-title"
-        open={open}
-        disableEscapeKeyDown={false}
-        onClose={() => toggleDialog()}
-        fullWidth
-        maxWidth={width}
-        classes={{ paper: classes.dialogPaper }}
-      >
-        <ImagesGridList
-          images={images}
-          selectedImages={selectedImages}
-          setSelectedImages={handleImageSelect}
-          columns={getColsForWidth(width)}
-          multiple
-        />
-      </Dialog>
-    </>
+  return imageSrc ? (
+    <img className={classes.img} src={imageSrc} alt={alt} />
+  ) : (
+    <div className={classes.upload}>
+      <AddIcon />
+    </div>
   );
 };

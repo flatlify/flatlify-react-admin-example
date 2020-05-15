@@ -2,7 +2,10 @@ import React from 'react';
 import GridListTile from '@material-ui/core/GridListTile';
 import MuiGridList from '@material-ui/core/GridList';
 import { makeStyles } from '@material-ui/core';
+import { useSelector, useDispatch } from 'react-redux';
 import { useWidth } from '../hooks';
+import { getMediaSelectedIds } from '../media/selectors';
+import { selectImage } from '../media/actions';
 
 const CELL_HEIGHT = 200;
 
@@ -30,43 +33,19 @@ const useStyles = makeStyles(theme => ({
 /**
  * @param {Object} props
  * @param {Object[]} props.images
- * @param {string} props.images.src
- * @param {string} props.images.id
- * @param {Set<string>} props.selectedImages
- * @param {function(Set<string>):void} props.setSelectedImages
  * @param {number} props.columns
- * @param {function(string):any} [props.onSelect]
- * @param {boolean} [props.multiple]
  */
 export const ImagesGridList = props => {
-  const {
-    images,
-    selectedImages, // Probably Set is not the best solution, especially for single image select
-    setSelectedImages,
-    onSelect = () => {},
-    multiple = true,
-    columns,
-  } = props;
+  const { images, columns } = props;
   const classes = useStyles();
-
-  const newSet = new Set(selectedImages.values());
+  const dispatch = useDispatch();
+  const selectedImageIds = useSelector(getMediaSelectedIds);
 
   const handleImageClick = imageId => {
-    if (newSet.has(imageId)) {
-      newSet.delete(imageId);
-    } else if (multiple) {
-      newSet.add(imageId);
-    } else if (!multiple && newSet.size === 0) {
-      newSet.add(imageId);
-    } else {
-      newSet.clear();
-      newSet.add(imageId);
-    }
-    setSelectedImages(newSet);
-    onSelect(imageId);
+    dispatch(selectImage(imageId));
   };
 
-  const isImageSelected = id => selectedImages.has(id);
+  const isImageSelected = id => selectedImageIds[id];
 
   return (
     <MuiGridList

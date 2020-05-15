@@ -8,7 +8,7 @@ import {
 } from 'react-admin';
 import { useSelector } from 'react-redux';
 import { useForm } from 'react-final-form';
-import { contentTypesSelector } from '../selectors/adminSelectors';
+import { contentTypesSelector } from '../react-admin/selectors';
 import { camelize } from '../../utils/string';
 
 export const _ReferenceInput = props => {
@@ -45,7 +45,7 @@ export const _ReferenceArrayInput = props => {
   }
   const type = contentType.type.toLowerCase();
   return (
-    <ReferenceArrayInput reference={type} source={source}>
+    <ReferenceArrayInput reference={type} source={source} resource="">
       <SelectArrayInput
         optionText={camelize(displayValue)}
         label={contentType.type}
