@@ -10,6 +10,7 @@ import {
   openMedia as openMediaAction,
 } from '../media/actions';
 import { isMediaOpen, getMediaSelectedIds } from '../media/selectors';
+import { mediaSelector } from '../react-admin/selectors';
 
 const useStyles = makeStyles(() => ({
   img: {
@@ -54,7 +55,8 @@ export const MediaInput = props => {
 };
 
 const MediaInputContainer = props => {
-  const { choices: imagesInfo, label, fieldName, multiple, imgId } = props;
+  const { label, fieldName, multiple, imgId } = props;
+  const imagesInfo = useSelector(mediaSelector);
   const classes = useStyles();
   const dispatch = useDispatch();
   const open = useSelector(isMediaOpen);
