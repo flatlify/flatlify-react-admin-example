@@ -50,12 +50,15 @@ const LoadedGridList = props => {
   const media = useSelector(getMedia);
   const selectedImageIds = useSelector(getMediaSelectedIds);
 
+  const { ids: currentPageImageIds } = props;
   const imagesInObject = useListController(props).data;
   const imagesArray = Object.values(imagesInObject);
-  const images = imagesArray.map(image => ({
-    ...image,
-    src: `${API_URL}${image.relativeSrc}`,
-  }));
+  const images = imagesArray
+    .filter(image => currentPageImageIds.includes(image.id))
+    .map(image => ({
+      ...image,
+      src: `${API_URL}${image.relativeSrc}`,
+    }));
 
   const [deleteQuery] = useDeleteMany(
     'media',
