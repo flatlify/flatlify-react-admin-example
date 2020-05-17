@@ -57,7 +57,15 @@ const Fields = () => {
       <SelectInput
         source="icon"
         label="icon"
-        choices={[{ id: 'BookIcon', name: 'BookIcon' }]}
+        choices={[
+          { id: 'BookIcon', name: 'BookIcon' },
+          { id: 'ExplicitIcon', name: 'ExplicitIcon' },
+          { id: 'AttachmentIcon', name: 'AttachmentIcon' },
+          { id: 'TextFieldsIcon', name: 'TextFieldsIcon' },
+          { id: 'PhoneIcon', name: 'PhoneIcon' },
+          { id: 'TvIcon', name: 'TvIcon' },
+          { id: 'AirplayIcon', name: 'AirplayIcon' },
+        ]}
       />
       <ArrayInput source="fields">
         <OrderedFormIterator>
