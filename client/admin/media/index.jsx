@@ -14,7 +14,7 @@ import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import { useSelector, useDispatch } from 'react-redux';
 import DoneIcon from '@material-ui/icons/Done';
 import { API_URL } from '../constants';
-import { ImagesGridList } from '../components/imagesGridList';
+import { ImagesGridList } from '../components/ImagesGridList';
 import { useWidth } from '../hooks';
 import { getMedia, getMediaSelectedIds } from './selectors';
 import { closeMedia, setMultiple } from './actions';
@@ -73,8 +73,8 @@ const LoadedGridList = props => {
   );
 
   const handleFileUpload = event => {
-    const [file] = event.target.files;
-    mutate(uploadFile(file));
+    const files = Object.values(event.target.files);
+    files.forEach(file => mutate(uploadFile(file)));
   };
 
   const handleClick = () => {
@@ -119,6 +119,7 @@ const LoadedGridList = props => {
         type="file"
         onChange={handleFileUpload}
         ref={fileInputRef}
+        multiple
         style={{ display: 'none' }}
       />
       <ImagesGridList images={images} columns={getColsForWidth(width)} />
