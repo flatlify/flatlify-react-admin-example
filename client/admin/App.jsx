@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { AdminContext, AdminUI, Resource, useQueryWithStore } from 'react-admin';
+import {
+  AdminContext,
+  AdminUI,
+  Resource,
+  useQueryWithStore,
+} from 'react-admin';
 import { useSelector } from 'react-redux';
+import { contentTypesSelector } from './react-admin/selectors';
 import { DataProvider } from './dataProvider';
 import contentTypesActions from './content-types';
 import mediaActions from './media';
 import siteSettingsActions from './site-settings';
 import createCrudComponents from './create-crud-components';
-import { contentTypesSelector } from '../selectors/adminSelectors';
 import { API_URL } from './constants';
+import { mediaReducer } from './media/reducers';
+import { getIconFromName } from './utils/contentTypeIcons';
 
 const dataProvider = DataProvider(API_URL);
 
 const App = () => (
-  <AdminContext dataProvider={dataProvider}>
+  <AdminContext
+    customReducers={{ media: mediaReducer }}
+    dataProvider={dataProvider}
+  >
     <Resources />
   </AdminContext>
 );
@@ -46,6 +56,7 @@ function Resources() {
             key={`type-${contentType.type}`}
             name={`${String(contentType.type).toLowerCase()}`}
             {...createCrudComponents(contentType)}
+            icon={getIconFromName(contentType.icon)}
           />,
         );
       }
@@ -58,7 +69,11 @@ function Resources() {
   return (
     <AdminUI>
       {[
-        <Resource key="content-types" name="content-types" {...contentTypesActions} />,
+        <Resource
+          key="content-types"
+          name="content-types"
+          {...contentTypesActions}
+        />,
         <Resource key="settings" name="settings" {...siteSettingsActions} />,
         ...resources,
         <Resource key="media" name="media" {...mediaActions} />,
@@ -68,3 +83,19 @@ function Resources() {
 }
 
 export default App;
+
+/**
+ * temporary disable translaton errors
+ * TODO: fix translation errors
+ */
+const originalLog = console.error;
+console.error = function log(...args) {
+  if (
+    args.length > 0 &&
+    typeof args[0] === 'string' &&
+    /^Warning: Missing translation/.test(args[0])
+  ) {
+    return;
+  }
+  originalLog.apply(console, args);
+};

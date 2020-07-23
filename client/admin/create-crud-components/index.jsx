@@ -1,11 +1,9 @@
 import React from 'react';
 import {
   SingleFieldList,
-  ArrayInput,
   ChipField,
   ReferenceField,
   ReferenceArrayField,
-  BooleanInput,
   Create,
   Edit,
   required,
@@ -13,12 +11,15 @@ import {
   TextInput,
 } from 'react-admin';
 import S from 'string';
-import { Datagrid, List, TextField, PostListActionToolbar, EditButton } from 'ra-ui-materialui';
+import { Datagrid, List, TextField, EditButton } from 'ra-ui-materialui';
 import RichTextInput from 'ra-input-rich-text';
-import ImageInput from '../components/ImageInput';
-import { _ReferenceInput, _ReferenceArrayInput } from '../components/ReferenceInput';
-import { contentTypesSelector } from '../../selectors/adminSelectors';
 import { useSelector } from 'react-redux';
+import { MediaInput } from '../components/MediaInput';
+import {
+  _ReferenceInput,
+  _ReferenceArrayInput,
+} from '../components/ReferenceInput';
+import { contentTypesSelector } from '../react-admin/selectors';
 import { camelize } from '../../utils/string';
 
 const getFieldComponent = type => {
@@ -27,8 +28,8 @@ const getFieldComponent = type => {
       return RichTextInput;
     case 'TextInput':
       return TextInput;
-    case 'ImageInput':
-      return ImageInput;
+    case 'MediaInput':
+      return MediaInput;
     case 'ReferenceInput':
       return _ReferenceInput;
     case 'ReferenceArrayInput':
@@ -42,23 +43,26 @@ const createCRUDComponents = contentTypeSettings => {
   const ContentTypeTitle = () => {
     return <span>{S(contentTypeSettings.type).titleCase().s}</span>;
   };
-  const Fields = () => {
+  const Fields = props => {
+    const { record } = props;
     return (
       <>
-        {contentTypeSettings.fields.map(({ isRequired, title, fieldType, ...fieldConfig }, i) => {
-          const FieldComponent = getFieldComponent(fieldType);
-          return (
-            <div>
-              <FieldComponent
-                key={i}
-                label={title}
-                source={camelize(title)}
-                validate={isRequired ? required() : undefined}
-                {...fieldConfig}
-              />
-            </div>
-          );
-        })}
+        {contentTypeSettings.fields.map(
+          ({ isRequired, title, fieldType, _gridDisplay_, ...fieldConfig }) => {
+            const FieldComponent = getFieldComponent(fieldType);
+            return (
+              <div key={`${fieldType} ${title}`}>
+                <FieldComponent
+                  label={title}
+                  source={camelize(title)}
+                  validate={isRequired ? required() : undefined}
+                  record={record}
+                  {...fieldConfig}
+                />
+              </div>
+            );
+          },
+        )}
       </>
     );
   };
@@ -109,7 +113,12 @@ const createCRUDComponents = contentTypeSettings => {
         const type = getType(contentTypes, fieldConfig.refTypeId);
 
         return (
-          <ReferenceField label={fieldConfig.displayValue} source={source} reference={type}>
+          <ReferenceField
+            label={fieldConfig.displayValue}
+            source={source}
+            reference={type}
+            key={`${type} ${source}`}
+          >
             <TextField source={camelize(fieldConfig.displayValue)} />
           </ReferenceField>
         );
@@ -118,7 +127,12 @@ const createCRUDComponents = contentTypeSettings => {
         const type = getType(contentTypes, fieldConfig.refTypeId);
 
         return (
-          <ReferenceArrayField label={fieldConfig.displayValue} source={source} reference={type}>
+          <ReferenceArrayField
+            label={fieldConfig.displayValue}
+            source={source}
+            reference={type}
+            key={`${type} ${source}`}
+          >
             <SingleFieldList>
               <ChipField source={camelize(fieldConfig.displayValue)} />
             </SingleFieldList>
@@ -126,12 +140,14 @@ const createCRUDComponents = contentTypeSettings => {
         );
       }
       default:
-        return <TextField source={source} />;
+        return <TextField key={`${source}`} source={source} />;
     }
   }
 
   function getType(contentTypes, searchTypeId) {
-    const contentType = contentTypes.find(contentType => contentType.id === searchTypeId);
+    const contentType = contentTypes.find(
+      contentType => contentType.id === searchTypeId,
+    );
     const type = contentType.type.toLowerCase();
     return type;
   }

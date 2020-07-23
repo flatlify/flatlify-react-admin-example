@@ -11,42 +11,62 @@ import {
   FormDataConsumer,
 } from 'react-admin';
 import BookIcon from '@material-ui/icons/Book';
+import get from 'lodash/get';
 import { ContentTypeList } from './ContentTypeList';
 import { ImageInputConfig } from '../components/ImageInput';
 import { ReferenceInputConfig } from '../components/ReferenceInput';
-
-import get from 'lodash/get';
 import OrderedFormIterator from '../components/OrderedFormIterator';
 
 const ContentTypeTitle = ({ record }) => {
   return <span>Content Type {record ? `"${record.type}"` : ''}</span>;
 };
+
 const getFieldConfig = (fieldType, getSource, scopedFormData) => {
-  // React Admin warning: You're using a FormDataConsumer inside an ArrayInput and you did not called
+  // React Admin warning: You're using a FormDataConsumer inside
+  // an ArrayInput and you did not called
   // the getSource function supplied by the FormDataConsumer component.
   // This is required for your inputs to get the proper source
   // but we don't need get source every time, sometimes we return empty component
   // and when we need, we call it in child components
 
   switch (fieldType) {
-    case 'ImageInput':
+    case 'MediaInput':
       return <ImageInputConfig getSource={getSource} />;
 
     case 'ReferenceInput':
     case 'ReferenceArrayInput':
-      return <ReferenceInputConfig getSource={getSource} scopedFormData={scopedFormData} />;
+      return (
+        <ReferenceInputConfig
+          getSource={getSource}
+          scopedFormData={scopedFormData}
+        />
+      );
 
-    default:
+    default: {
+      // eslint-disable-next-line no-unused-vars
       const _source = typeof getSource === 'function' ? getSource() : null;
       return <></>;
+    }
   }
 };
 
-const Fields = props => {
+const Fields = () => {
   return (
     <>
       <TextInput source="type" validate={required()} />
-      <SelectInput source="icon" label="icon" choices={[{ id: 'BookIcon', name: 'BookIcon' }]} />
+      <SelectInput
+        source="icon"
+        label="icon"
+        choices={[
+          { id: 'BookIcon', name: 'BookIcon' },
+          { id: 'ExplicitIcon', name: 'ExplicitIcon' },
+          { id: 'AttachmentIcon', name: 'AttachmentIcon' },
+          { id: 'TextFieldsIcon', name: 'TextFieldsIcon' },
+          { id: 'PhoneIcon', name: 'PhoneIcon' },
+          { id: 'TvIcon', name: 'TvIcon' },
+          { id: 'AirplayIcon', name: 'AirplayIcon' },
+        ]}
+      />
       <ArrayInput source="fields">
         <OrderedFormIterator>
           <TextInput required label="Field name" source="title" />
@@ -57,7 +77,7 @@ const Fields = props => {
             choices={[
               { id: 'TextInput', name: 'Text' },
               { id: 'RichTextInput', name: 'Rich Text' },
-              { id: 'ImageInput', name: 'Image' },
+              { id: 'MediaInput', name: 'Media' },
               { id: 'ReferenceInput', name: 'ReferenceInput' },
               { id: 'ReferenceArrayInput', name: 'ReferenceArrayInput' },
             ]}

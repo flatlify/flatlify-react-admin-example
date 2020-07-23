@@ -14,7 +14,7 @@
       "_gridDisplay_": true
     },
     {
-      "fieldType": "ImageInput",
+      "fieldType": "MediaInput",
       "title": "Cover",
       "accept": "image/*",
       "multiple": true

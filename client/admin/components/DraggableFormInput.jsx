@@ -46,7 +46,7 @@ const styles = theme => ({
   },
 });
 
-export const DraggableFormInput = ({
+const DraggableFormInput = ({
   basePath,
   children,
   classes = {},
@@ -97,12 +97,10 @@ function getLabel(input, resource) {
   if (typeof input.props.label === 'undefined') {
     if (input.props.source) {
       return `resources.${resource}.fields.${input.props.source}`;
-    } else {
-      return undefined;
     }
-  } else {
-    return input.props.label;
+    return undefined;
   }
+  return input.props.label;
 }
 
 DraggableFormInput.propTypes = {
