@@ -1,14 +1,7 @@
+import { DeleteError, UpdateError } from './utils/errors';
+
 /* eslint-disable no-restricted-syntax */
 const axios = require('axios').default;
-
-const getRouteURL = (baseURL, resource) => {
-  switch (resource) {
-    case 'content-types':
-      return `${baseURL}/content-types`;
-    default:
-      return `${baseURL}/content/${resource}`;
-  }
-};
 
 const getFileFields = params => {
   const fileFields = {};
@@ -18,7 +11,10 @@ const getFileFields = params => {
       if (Array.isArray(params.data[fieldName])) {
         params.data[fieldName].forEach(fieldEntry => {
           if (fieldEntry instanceof File) {
-            fileFields[fieldName] = [fieldEntry, ...(fileFields[fieldName] || [])];
+            fileFields[fieldName] = [
+              fieldEntry,
+              ...(fileFields[fieldName] || []),
+            ];
           }
         });
       } else if (params.data[fieldName] instanceof File) {
@@ -65,19 +61,21 @@ const processData = params => {
 
 export const DataProvider = baseURL => ({
   getList: async (resource, params) => {
-    const response = await axios.get(getRouteURL(baseURL, resource), {
+    const { data } = await axios.get(`${baseURL}/content/${resource}`, {
       params,
     });
-    return response.data;
+    return { data, total: data.length };
   },
   getOne: async (resource, params) => {
     const { id } = params;
-    const response = await axios.get(`${getRouteURL(baseURL, resource)}/${id}`);
-    return response.data;
+    const { data } = await axios.get(`${baseURL}/content/${resource}/${id}`);
+    return { data };
   },
   getMany: async (resource, params) => {
-    const response = await axios.get(getRouteURL(baseURL, resource), { params });
-    return response.data;
+    const { data } = await axios.get(`${baseURL}/content/${resource}`, {
+      params,
+    });
+    return { data };
   },
   // eslint-disable-next-line no-unused-vars
   getManyReference: async (resource, params) => {
@@ -85,33 +83,82 @@ export const DataProvider = baseURL => ({
   },
   create: async (resource, params) => {
     const { data, headers } = processData(params);
-    const response = await axios.post(getRouteURL(baseURL, resource), data, { headers });
+    if (resource === 'content-types') {
+      const { type } = params.data;
+      await axios.post(`${baseURL}/content-type/${type}`);
+    }
+    const response = await axios.post(`${baseURL}/content/${resource}`, data, {
+      headers,
+    });
     return response;
   },
   update: async (resource, params) => {
     const { id } = params;
     const { data, headers } = processData(params);
 
-    const response = await axios.put(`${getRouteURL(baseURL, resource)}/${id}`, data, {
-      headers,
-    });
-    return response.data;
+    const response = await axios.put(
+      `${baseURL}/content/${resource}/${id}`,
+      data,
+      {
+        headers,
+      },
+    );
+    return { data: response.data };
   },
   updateMany: async (resource, params) => {
-    const response = await axios.put(getRouteURL(baseURL, resource), {
-      ...params,
-      author: { name: 'name', email: 'email' },
+    const { ids } = params;
+    const { data, headers } = processData(params);
+
+    const deletePromises = ids.map(async id => {
+      try {
+        await axios.put(`${baseURL}/content/${resource}/${id}`, data, {
+          headers,
+        });
+        return id;
+      } catch (e) {
+        throw new UpdateError(id);
+      }
     });
-    return response.data;
+    const queries = await Promise.allSettled(deletePromises);
+    const deletedIds = queries
+      .filter(promise => promise.status === 'fulfilled')
+      .map(promise => promise.value);
+
+    return { data: deletedIds };
   },
   delete: async (resource, params) => {
-    const { id } = params;
-    const response = await axios.delete(`${getRouteURL(baseURL, resource)}/${id}`);
-    return response.data;
+    const {
+      id,
+      previousData: { type },
+    } = params;
+    await axios.delete(`${baseURL}/content/${resource}/${id}`);
+    if (resource === 'content-types') {
+      await axios.delete(`${baseURL}/content-type/${type}`);
+    }
+    return { data: { id } };
   },
   deleteMany: async (resource, params) => {
     const { ids } = params;
-    const response = await axios.delete(getRouteURL(baseURL, resource), { data: ids });
-    return response.data;
+
+    const deletePromises = ids.map(async id => {
+      try {
+        const {
+          data: { type },
+        } = await axios.get(`${baseURL}/content/${resource}/${id}`);
+        await axios.delete(`${baseURL}/content/${resource}/${id}`);
+        if (resource === 'content-types') {
+          await axios.delete(`${baseURL}/content-type/${type}`);
+        }
+        return id;
+      } catch (e) {
+        throw new DeleteError(id);
+      }
+    });
+    const queries = await Promise.allSettled(deletePromises);
+    const deletedIds = queries
+      .filter(promise => promise.status === 'fulfilled')
+      .map(promise => promise.value);
+
+    return { data: deletedIds };
   },
 });

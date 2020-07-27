@@ -1,5 +1,5 @@
 module.exports = {
   env: {
-    API_URL: 'http://localhost:3020',
+    API_URL: 'http://localhost:3000',
   },
 };
