@@ -11,7 +11,8 @@
     "start": "cross-env NODE_ENV=production node server/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "eslint": "eslint ./**/*.{js,jsx}",
-    "eslint:fix": "eslint ./**/*.{js,jsx} --fix"
+    "eslint:fix": "eslint ./**/*.{js,jsx} --fix",
+    "setup": "node ./server/setup.mjs"
   },
   "repository": {
     "type": "git",
@@ -32,11 +33,6 @@
     "@flatlify/flatlify": "0.0.4",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.2.0",
-    "@types/axios": "^0.14.0",
-    "@types/date-fns": "^2.6.0",
-    "@types/express": "^4.17.7",
-    "@types/lowdb": "^1.0.9",
-    "@types/node": "^13.13.15",
     "axios": "^0.18.0",
     "body-parser": "^1.19.0",
     "debug": "^4.1.1",
@@ -72,6 +68,11 @@
     "string": "^3.3.3"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/date-fns": "^2.6.0",
+    "@types/express": "^4.17.7",
+    "@types/lowdb": "^1.0.9",
+    "@types/node": "^13.13.15",
     "@babel/plugin-proposal-optional-chaining": "^7.10.4",
     "@babel/plugin-transform-runtime": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
