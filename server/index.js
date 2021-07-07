@@ -1,3 +1,6 @@
-const server = require('flatlify-server');
+const { bootstrap } = require('@flatlify/flatlify');
+const dotenv = require('dotenv');
 
-const app = server({ dbDir: `${__dirname}/db` });
+dotenv.config();
+
+bootstrap();

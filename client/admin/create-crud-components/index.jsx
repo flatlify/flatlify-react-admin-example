@@ -92,7 +92,7 @@ const createCRUDComponents = contentTypeSettings => {
       <List {...props}>
         <Datagrid>
           <TextField source="id" />
-          {contentTypeSettings.fields
+          {(contentTypeSettings.fields || [])
             .filter(fieldConfig => !!fieldConfig._gridDisplay_)
             .map(fieldConfig => {
               const Field = getField(fieldConfig, contentTypes);
