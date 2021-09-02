@@ -47,7 +47,7 @@
     "globby": "^10.0.1",
     "informed": "^2.7.2",
     "isomorphic-fetch": "^2.2.1",
-    "isomorphic-git": "^0.72.1",
+    "isomorphic-git": "^1.8.2",
     "jsondiffpatch": "^0.3.11",
     "lodash": "^4.17.15",
     "lowdb": "^1.0.0",
